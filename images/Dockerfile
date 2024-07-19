@@ -60,6 +60,14 @@ WORKDIR /home/runner
 COPY --chown=runner:docker --from=build /actions-runner .
 COPY --from=build /usr/local/lib/docker/cli-plugins/docker-buildx /usr/local/lib/docker/cli-plugins/docker-buildx
 
+COPY logger.sh /usr/bin/
+
+# Configure hooks folder structure.
+COPY hooks /etc/arc/hooks/
+
+ENV ACTIONS_RUNNER_HOOK_JOB_STARTED=/etc/arc/hooks/job-started.sh
+
+
 RUN install -o root -g root -m 755 docker/* /usr/bin/ && rm -rf docker
 
 USER runner
