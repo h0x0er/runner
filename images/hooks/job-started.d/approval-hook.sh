@@ -48,7 +48,7 @@ function handleResponse(){
 
         approver=$(echo "$resp" | jq '.approved_by')
         step-log-success "approved by: $approver"
-        ste-log-notice "continuing job"
+        step-log-notice "continuing job"
         exit 0
 
     fi
