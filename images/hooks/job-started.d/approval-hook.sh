@@ -46,7 +46,7 @@ function handleResponse(){
     hasCommitSha=$?
 
     if [[ $GITHUB_COMMIT_SHA == "" ]] && [[ $hasCommitSha -eq 0 ]]; then
-        GITHUB_COMMIT_SHA=$(echo "$resp" | jq '.commit_sha')
+        GITHUB_COMMIT_SHA=$(echo "$resp" | jq -r '.commit_sha')
     fi
 
     local isApproved
@@ -54,9 +54,9 @@ function handleResponse(){
     isApproved=$?
     if [[ $isApproved -eq 0 ]]; then
 
-        approver=$(echo "$resp" | jq '.approved_by')
-        step-log-success "approved by: $approver"
-        step-log-notice "continuing job"
+        approver=$(echo "$resp" | jq -r '.approved_by')
+        step-log-success "Approved by: $approver"
+        step-log-notice "Continuing job"
         exit 0
 
     fi
@@ -67,10 +67,11 @@ function printApprovalInfo(){
 
     if [[ $GITHUB_COMMIT_SHA != "" ]] && [[ $APPROVAL_SHOWED -eq 0 ]]; then
 
-        step-log-notice "approval_url: https://int1.stepsecurity.io/github/$GITHUB_REPOSITORY/commits/$GITHUB_COMMIT_SHA/approve-ci-run"
+        step-log-notice "Waiting to be approved.."
+
+        step-log-notice "Approval URL: https://int1.stepsecurity.io/github/$GITHUB_REPOSITORY/commits/$GITHUB_COMMIT_SHA/approve-ci-run"
 
         # step-log-debug "$should_ci_run"
-        step-log-notice "waiting to be approved.."
 
         APPROVAL_SHOWED=1
 
@@ -101,8 +102,8 @@ function main(){
 
     done
 
-    step-log-warning "no-one approved run, waited for maximum time"
-    step-log-warning "failing job"
+    step-log-warning "No-one approved run, waited for maximum time"
+    step-log-warning "Failing job"
 
     exit 1
 
