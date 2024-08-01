@@ -59,6 +59,7 @@ function printApprovalInfo(){
 
     step-log-notice "approval_url: https://int1.stepsecurity.io/github/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/approve-ci-run"
 
+    step-log-debug "$should_ci_run"
     step-log-notice "waiting to be approved.."
 
 }
