@@ -6,7 +6,7 @@ source logger.sh
 
 log.debug "Running ARC Job Started Hooks"
 
-log.debug "making startup-hooks executable"
+# log.debug "making startup-hooks executable"
 sudo chmod ugo+x /etc/arc/hooks/job-started.d/*
 
 # log.debug "$(ls -lah /etc/arc/hooks/job-started.d)"
