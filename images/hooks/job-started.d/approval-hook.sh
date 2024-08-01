@@ -28,7 +28,7 @@ function handleResponse(){
     echo "$resp" | grep -q "error"  > /dev/null
     err=$?
     if [[ $err -eq 0 ]] || [[ $lastStatus -ne 0 ]]; then
-        step-log-error "error response received: %s \nExit 1\n" "$resp"
+        step-log-error "error response received: $resp"
         exit 1
     fi
     
@@ -39,7 +39,8 @@ function handleResponse(){
     if [[ $isApproved -eq 0 ]]; then
 
         approver=$(echo "$resp" | jq '.approved_by')
-        step-log-success "approved by: %s\n" "$approver"
+        step-log-success "approved by: $approver"
+        ste-log-notice "continuing job"
         exit 0
 
     fi
@@ -48,9 +49,9 @@ function handleResponse(){
 
 function printApprovalInfo(){
 
-    step-log-notice "approval_url: https://int1.stepsecurity.io/github/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/approve-ci-run \n"
+    step-log-notice "approval_url: https://int1.stepsecurity.io/github/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/approve-ci-run"
 
-    step-log-warning "waiting to be approved..\n"
+    step-log-notice "waiting to be approved.."
 
 }
 
@@ -77,7 +78,9 @@ function main(){
 
     done
 
-    step-log-warning "no-one approved run, waited for maximum time, exit 1\n"
+    step-log-warning "no-one approved run, waited for maximum time"
+    step-log-warning "failing job"
+
     exit 1
 
 }
