@@ -12,11 +12,11 @@ step-log-notice  () { log.notice "[StepSecurity] $1"; }
 
 GITHUB_REPOSITORY=${GITHUB_REPOSITORY:-}
 GITHUB_RUN_ID=${GITHUB_RUN_ID:-}
-GITHUB_SHA=${GITHUB_SHA:-}
+GITHUB_COMMIT_SHA=""
 
 ERROR_COUNT=0
 ERROR_RESP=""
-
+APPROVAL_SHOWED=0
 
 api_base="https://int.api.stepsecurity.io/v1"
 should_ci_run="$api_base/github/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/should-ci-run"
@@ -41,6 +41,14 @@ function handleResponse(){
     fi
 
 
+    local hasCommitSha
+    echo "$resp" | grep -q "commit_sha" > /dev/null
+    hasCommitSha=$?
+
+    if [[ $GITHUB_COMMIT_SHA == "" ]] && [[ $hasCommitSha -eq 0 ]]; then
+        GITHUB_COMMIT_SHA=$(echo "$resp" | jq '.commit_sha')
+    fi
+
     local isApproved
     echo "$resp" | grep -q "approved_by" > /dev/null
     isApproved=$?
@@ -57,11 +65,16 @@ function handleResponse(){
 
 function printApprovalInfo(){
 
-    step-log-notice "approval_url: https://int1.stepsecurity.io/github/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/approve-ci-run"
+    if [[ $GITHUB_COMMIT_SHA != "" ]] && [[ $APPROVAL_SHOWED -eq 0 ]]; then
 
-    # step-log-debug "$should_ci_run"
-    step-log-notice "waiting to be approved.."
+        step-log-notice "approval_url: https://int1.stepsecurity.io/github/$GITHUB_REPOSITORY/commits/$GITHUB_COMMIT_SHA/approve-ci-run"
 
+        # step-log-debug "$should_ci_run"
+        step-log-notice "waiting to be approved.."
+
+        APPROVAL_SHOWED=1
+
+    fi
 }
 
 
@@ -74,13 +87,14 @@ function main(){
     counter=0
     maxWait=60 # wait for 5 minutes
     
-    printApprovalInfo
 
     while [[ $counter -ne $maxWait ]]; do
         # step-log-debug "[$counter] waiting.."
 
         resp=$(curl -XGET -s "${should_ci_run}")
         handleResponse "${resp}" $?
+
+        printApprovalInfo
 
         counter=$((counter += 1))
         sleep 5
