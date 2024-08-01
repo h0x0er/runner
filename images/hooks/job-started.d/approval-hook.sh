@@ -14,10 +14,12 @@ GITHUB_REPOSITORY=${GITHUB_REPOSITORY:-}
 GITHUB_RUN_ID=${GITHUB_RUN_ID:-}
 GITHUB_SHA=${GITHUB_SHA:-}
 
+ERROR_COUNT=0
+ERROR_RESP=""
+
 
 api_base="https://int.api.stepsecurity.io/v1"
 should_ci_run="$api_base/github/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/should-ci-run"
-
 
 
 function handleResponse(){
@@ -28,10 +30,16 @@ function handleResponse(){
     echo "$resp" | grep -q "error"  > /dev/null
     err=$?
     if [[ $err -eq 0 ]] || [[ $lastStatus -ne 0 ]]; then
-        step-log-error "error response received: $resp"
-        exit 1
+        # step-log-error "error response received: $resp"
+        ERROR_COUNT=$((ERROR_COUNT += 1))
+        ERROR_RESP="$resp"
     fi
     
+    if [[ $ERROR_COUNT -eq 4 ]]; then
+        step-log-error "error occured: $ERROR_RESP"
+        exit 1
+    fi
+
 
     local isApproved
     echo "$resp" | grep -q "approved_by" > /dev/null
